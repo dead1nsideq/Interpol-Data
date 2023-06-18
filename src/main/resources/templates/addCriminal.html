@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add criminal</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.0/dist/css/bootstrap.css}">
+  <script th:src="@{/webjars/jquery/3.7.0/dist/jquery.js}"></script>
+  <script th:src="@{/webjars/popperjs__core/2.11.8/dist/umd/popper.js}"></script>
+  <script th:src="@{/webjars/bootstrap/5.3.0/dist/js/bootstrap.bundle.js}"></script>
+</head>
+<body>
+<div th:replace="~{navigation.html}"></div>
+<div id="error-message" class="alert alert-danger" style="display: none;"></div>
+<form id="criminalForm" method="post" action="/criminals/addCriminal" enctype="multipart/form-data">
+
+
+  <div class="row">
+    <div class="col-md-2">
+      <label for="firstName" class="form-label">First Name</label>
+      <input type="text" class="form-control" aria-describedby="firstNameHelp" name="firstName" id="firstName">
+      <div id="firstNameHelp" class="form-text">Input criminal's first name.</div>
+    </div>
+    <div class="col-md-2">
+      <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" class="form-control" name="lastName" id="lastName" aria-describedby="lastNameHelp">
+        <div id="lastNameHelp" class="form-text">Input criminal's last name.</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="form-group">
+        <label for="nickName">Nickname:</label>
+        <input type="text" name="nickName" id="nickName" class="form-control" aria-describedby="nickNameHelp">
+        <div id="nickNameHelp" class="form-text">Input criminal's nick name.</div>
+      </div>
+    </div>
+    <div class="col-md-2">
+      <div class="form-group">
+        <label for="height">Height:</label>
+        <input type="number" name="height" id="height" class="form-control" aria-describedby="heightHelp">
+        <div id="heightHelp" class="form-text">Input criminal's height. (130 to 220)</div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+  <div class="form-group col-md-2">
+    <label for="hairColor">Hair color</label>
+    <select class="form-control" name="hairColor" id="hairColor">
+      <option value="BLONDE">Blonde hair</option>
+      <option value="BROWN">Brown hair</option>
+      <option value="BLACK">Black hair</option>
+      <option value="RED">Red hair</option>
+      <option value="BALD">No hair</option>
+      <option value="UNKNOWN" selected>Unknown color</option>
+    </select>
+  </div>
+  <div class="form-group col-md-2">
+    <label for="eyeColor">Eye color</label>
+    <select class="form-control" name="eyeColor" id="eyeColor">
+      <option value="BLUE">Blue eyes</option>
+      <option value="GREEN">Green eyes</option>
+      <option value="BROWN">Brown eyes</option>
+      <option value="HAZEL">Hazel eyes</option>
+      <option value="UNKNOWN" selected>Unknown color</option>
+    </select>
+  </div>
+  </div>
+  <div class="row">
+    <div class="col col-md-2">
+      <div class="form-group">
+        <label for="criminalGroupName">Criminal group name:</label>
+        <input type="text" name="criminalGroupName" id="criminalGroupName" class="form-control" aria-describedby="criminalGangHelp">
+        <div id="criminalGangHelp" class="form-text">Input criminal group name</div>
+      </div>
+    </div>
+    <div class="col col-md-3">
+      <div class="form-group">
+        <label for="criminalGroupType">Criminal group type</label>
+        <select class="form-control" name="criminalGroupType" id="criminalGroupType">
+          <option selected>Open this select menu</option>
+          <option value="Mafia">Mafia</option>
+          <option value="Cartel">Cartel</option>
+          <option value="Gang">Gang</option>
+          <option value="Syndicate">Syndicate</option>
+          <option value="Triad">Triad</option>
+          <option value="Yakuza">Yakuza</option>
+          <option value="Familia">Familia</option>
+          <option value="Organisation">Organisation</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-3">
+      <div class="form-group">
+        <label for="dateOfArrest">Date of Arrest:</label>
+        <input type="date" name="dateOfArrest" id="dateOfArrest" class="form-control">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <label for="dateOfBirth">Date of Birth:</label>
+        <input type="date" name="dateOfBirth" id="dateOfBirth" class="form-control">
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group">
+        <label for="country">Country:</label>
+        <input type="text" name="country" id="country" class="form-control">
+      </div>
+    </div>
+  </div>
+  <div>
+    <input type="hidden" id="selectedCriminalRecordsInput" name="selectedCriminalRecords">
+    <div class="col-md-4">
+      <label for="newCriminalRecordInput">Criminal Records:</label>
+      <div class="input-group">
+        <input type="text" id="newCriminalRecordInput" name="criminalRecord" class="form-control">
+        <button type="button" id="addCriminalRecordButton" class="btn btn-primary">+</button>
+      </div>
+      <ul id="selectedCriminalRecords" class="list-group mt-2">
+        <li th:each="criminalRecord : ${selectedCriminalRecords}" class="list-group-item" th:text="${criminalRecord.getCriminalRecord()}"></li>
+      </ul>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+      var selectedCriminalRecords = [];
+      var selectedCriminalRecordsList = $('#selectedCriminalRecords');
+      var addCriminalRecordButton = $('#addCriminalRecordButton');
+      var newCriminalRecordInput = $('#newCriminalRecordInput');
+      var selectedCriminalRecordsInput = $('#selectedCriminalRecordsInput');
+
+      function addCriminalRecord(criminalRecord) {
+        if (!selectedCriminalRecords.includes(criminalRecord)) {
+          selectedCriminalRecords.push(criminalRecord);
+          var listItem = $('<li>').text(criminalRecord);
+          var deleteButton = $('<button>').text('x').attr('class', 'remove-criminalRecord');
+          listItem.append(deleteButton);
+          selectedCriminalRecordsList.append(listItem);
+          updateSelectedCriminalRecordsInput();
+        }
+      }
+
+      function removeCriminalRecord(criminalRecord) {
+        var index = selectedCriminalRecords.indexOf(criminalRecord);
+        if (index > -1) {
+          selectedCriminalRecords.splice(index, 1);
+          updateSelectedCriminalRecordsInput();
+        }
+      }
+
+      function updateSelectedCriminalRecordsInput() {
+        selectedCriminalRecordsInput.val(selectedCriminalRecords.join(','));
+      }
+
+      // Обработчик события для кнопки удаления языка
+      $(document).on('click', '.remove-criminalRecord', function() {
+        var listItem = $(this).closest('li');
+        var criminalRecord = listItem.text().slice(0, -1); // Извлечение языка из элемента списка
+        removeCriminalRecord(criminalRecord)
+        listItem.remove();
+      });
+
+      addCriminalRecordButton.click(function(event) {
+        event.preventDefault(); // Предотвращение отправки формы
+        var newCriminalRecord = newCriminalRecordInput.val();
+        if (newCriminalRecord && !selectedCriminalRecords.includes(newCriminalRecord)) {
+          addCriminalRecord(newCriminalRecord);
+          newCriminalRecordInput.val('');
+        }
+      });
+
+
+      newCriminalRecordInput.keypress(function(event) {
+        if (event.which === 13) {
+          event.preventDefault();
+          var newCriminalRecord = newCriminalRecordInput.val();
+          if (newCriminalRecord && !selectedCriminalRecords.includes(newCriminalRecord)) {
+            addCriminalRecord(newCriminalRecord);
+            newCriminalRecordInput.val('');
+          }
+        }
+      });
+
+      var selectedCriminalRecordsValue = /*[[${selectedCriminalRecords}]]*/ '';
+      if (selectedCriminalRecordsValue) {
+        selectedCriminalRecords = selectedCriminalRecordsValue.split(',');
+        selectedCriminalRecords.forEach(function(criminalRecord) {
+          addCriminalRecord(criminalRecord);
+        });
+      }
+      $('#criminalForm').submit(function() {
+        updateSelectedCriminalRecordsInput()
+        // Дополнительная логика перед отправкой формы
+      });
+    });
+    </script>
+  </div>
+  <input type="hidden" id="selectedLanguagesInput" name="selectedLanguages">
+
+  <div>
+    <div class="col-md-4">
+      <label for="newLanguageInput">Languages:</label>
+      <div class="input-group">
+        <input type="text" id="newLanguageInput" name="criminalLanguage" class="form-control">
+        <button type="button" id="addLanguageButton" class="btn btn-primary">+</button>
+      </div>
+      <ul id="selectedLanguages" class="list-group mt-2">
+        <li th:each="language : ${selectedLanguages}" class="list-group-item" th:text="${language.getCriminalLanguage()}"></li>
+      </ul>
+    </div>
+    <script>
+      $(document).ready(function() {
+        var selectedLanguages = [];
+        var selectedLanguagesList = $('#selectedLanguages');
+        var addLanguageButton = $('#addLanguageButton');
+        var newLanguageInput = $('#newLanguageInput');
+        var selectedLanguagesInput = $('#selectedLanguagesInput');
+
+        function addLanguage(language) {
+          if (!selectedLanguages.includes(language)) {
+            selectedLanguages.push(language);
+            var listItem = $('<li>').text(language);
+            var deleteButton = $('<button>').text('x').attr('class', 'remove-language');
+            listItem.append(deleteButton);
+            selectedLanguagesList.append(listItem);
+            updateSelectedLanguagesInput();
+          }
+        }
+
+        function removeLanguage(language) {
+          var index = selectedLanguages.indexOf(language);
+          if (index > -1) {
+            selectedLanguages.splice(index, 1);
+            updateSelectedLanguagesInput();
+          }
+        }
+
+        function updateSelectedLanguagesInput() {
+          selectedLanguagesInput.val(selectedLanguages.join(','));
+        }
+
+        $(document).on('click', '.remove-language', function() {
+          var listItem = $(this).closest('li');
+          var language = listItem.text().slice(0, -1); // Извлечение языка из элемента списка
+          removeLanguage(language);
+          listItem.remove();
+        });
+
+        addLanguageButton.click(function(event) {
+          event.preventDefault(); // Предотвращение отправки формы
+          var newLanguage = newLanguageInput.val();
+          if (newLanguage && !selectedLanguages.includes(newLanguage)) {
+            addLanguage(newLanguage);
+            newLanguageInput.val('');
+          }
+        });
+
+
+        newLanguageInput.keypress(function(event) {
+          if (event.which === 13) {
+            event.preventDefault();
+            var newLanguage = newLanguageInput.val();
+            if (newLanguage && !selectedLanguages.includes(newLanguage)) {
+              addLanguage(newLanguage);
+              newLanguageInput.val('');
+            }
+          }
+        });
+
+        var selectedLanguagesValue = /*[[${selectedLanguages}]]*/ '';
+        if (selectedLanguagesValue) {
+          selectedLanguages = selectedLanguagesValue.split(',');
+          selectedLanguages.forEach(function(language) {
+            addLanguage(language);
+          });
+        }
+
+        $('#criminalForm').submit(function() {
+          updateSelectedLanguagesInput();
+          // Дополнительная логика перед отправкой формы
+        });
+      });
+    </script>
+  </div>
+  <div class="col-md-5">
+    <label for="textOfDossier">Dossier:</label>
+    <textarea id="textOfDossier" name="textOfDossier" class="form-control" rows="4"></textarea>
+  </div>
+  <div class="col-md-2">
+    <label for="file">Choose File:</label>
+    <input type="file" name="file" id="file" class="form-control" required>
+  </div>
+
+  <div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
+</form>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Criminals</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.0/dist/css/bootstrap.css}">
+    <script th:src="@{/webjars/jquery/3.7.0/dist/jquery.js}"></script>
+    <script th:src="@{/webjars/popperjs__core/2.11.8/dist/umd/popper.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.0/dist/js/bootstrap.bundle.js}"></script>
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .not-arrested {
+            background-color: lightgreen;
+            color: black;
+        }
+
+        .arrested {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{navigation.html}"></div>
+<div class="container-fluid">
+    <div class="container-fluid">
+        <div class="accordion" id="accordionExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Sorting menu
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                        <form action="/criminals" method="get">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="inputCriminalFirstName" class="form-label">Criminal first name</label>
+                                        <input type="text" id="inputCriminalFirstName" name="inputCriminalFirstName" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="inputCriminalLastName" class="form-label">Criminal last name</label>
+                                        <input type="text" id="inputCriminalLastName" name="inputCriminalLastName" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="inputCriminalNickName" class="form-label">Criminal nick name</label>
+                                        <input type="text" id="inputCriminalNickName" name="inputCriminalNickName" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="criminalRecord" class="form-label">Criminal record to find</label>
+                                        <input type="text" id="criminalRecord" name="criminalRecord" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="textInDossier" class="form-label">Text in dossier to find</label>
+                                        <input type="text" id="textInDossier" name="textInDossier" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="hairColor" class="form-label">Hair color</label>
+                                        <select class="form-select" name="hairColor" id="hairColor">
+                                            <option selected>Open this select menu</option>
+                                            <option value="BLONDE">Blonde hair</option>
+                                            <option value="BROWN">Brown hair</option>
+                                            <option value="BLACK">Black hair</option>
+                                            <option value="RED">Red hair</option>
+                                            <option value="BALD">No hair</option>
+                                            <option value="UNKNOWN">Unknown color</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="eyeColor" class="form-label">Eye color</label>
+                                        <select class="form-select" name="eyeColor" id="eyeColor">
+                                            <option selected>Open this select menu</option>
+                                            <option value="BLUE">Blue eyes</option>
+                                            <option value="GREEN">Green eyes</option>
+                                            <option value="BROWN">Brown eyes</option>
+                                            <option value="HAZEL">Hazel eyes</option>
+                                            <option value="UNKNOWN">Unknown color</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label for="criminalGroupType" class="form-label">Criminal group type</label>
+                                        <select class="form-select" name="criminalGroupType" id="criminalGroupType">
+                                            <option selected>Open this select menu</option>
+                                            <option value="Mafia">Mafia</option>
+                                            <option value="Cartel">Cartel</option>
+                                            <option value="Gang">Gang</option>
+                                            <option value="Syndicate">Syndicate</option>
+                                            <option value="Triad">Triad</option>
+                                            <option value="Yakuza">Yakuza</option>
+                                            <option value="Familia">Familia</option>
+                                            <option value="Organisation">Organisation</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="arrestedCriminals" id="AllCriminals" value="all" checked>
+                                        <label class="form-check-label" for="AllCriminals">
+                                            All Criminals
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="arrestedCriminals" id="OnlyArrested" value="onlyArrested">
+                                        <label class="form-check-label" for="OnlyArrested">
+                                            Only Arrested
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="arrestedCriminals" id="NotArrested" value="notArrested">
+                                        <label class="form-check-label" for="NotArrested">
+                                            Not Arrested
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <span>Sort by:</span>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sortBy" id="sortById" value="id" checked>
+                                        <label class="form-check-label" for="sortById">
+                                            Date added
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="sortBy" id="sortByName" value="firstName">
+                                        <label class="form-check-label" for="sortByName">
+                                            First name
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault" name="order">
+                                        <label class="form-check-label" for="flexSwitchCheckDefault">DESC order</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-1">
+                                    <div><button class="btn btn-primary" type="submit">Filter</button></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div th:if="${criminals.size() == 0}">No result by your sorting</div>
+    <div class="row row-cols-auto row-cols-md-4 row-gap-md-3">
+        <div class="col-6 col-md-3" th:each="criminal : ${criminals}">
+            <div class="card">
+                <img th:src="@{/images/{id}(id=${criminal.getImage().getId()})}" class="img-thumbnail" alt="Criminal Image">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${criminal.getFirstName() + ' ' + criminal.getLastName()}"></h5>
+                    <div th:if="${criminal.getDateOfArrest() == null}">
+                        <span class="status-badge not-arrested">Not Arrested</span>
+                    </div>
+                    <div th:if="${criminal.getDateOfArrest() != null}">
+                        <span class="status-badge arrested">Arrested</span>
+                    </div>
+                    <p class="card-text" th:text="${#strings.length(criminal.getDossier().getTextOfDossier()) &gt; 100 ? #strings.substring(criminal.getDossier().getTextOfDossier(), 0, 100) + '...' : criminal.getDossier().getTextOfDossier()}"></p>
+                    <a th:href="@{/criminals/{id}(id=${criminal.getId()})}" class="btn btn-primary">To full criminal dossier</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

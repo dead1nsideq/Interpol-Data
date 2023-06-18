@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Criminal</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.0/dist/css/bootstrap.css}">
+    <style>
+        .button-group {
+            margin-top: 20px;
+        }
+
+        .criminal-details {
+            margin-top: 20px;
+        }
+        .criminal-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .criminal-info {
+            margin-top: 20px;
+        }
+
+        .criminal-info strong {
+            font-weight: bold;
+        }
+
+        .criminal-info span {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.0/dist/css/bootstrap.css}">
+    <script th:src="@{/webjars/jquery/3.7.0/dist/jquery.js}"></script>
+    <script th:src="@{/webjars/popperjs__core/2.11.8/dist/umd/popper.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.0/dist/js/bootstrap.bundle.js}"></script>
+</head>
+<body>
+<div th:replace="~{navigation.html}"></div>
+
+<div class="container">
+    <h1>Criminal Details</h1>
+    <div th:if="${criminal != null}">
+        <div class="col-md-12">
+            <div class="button-group">
+                <a th:href="@{/criminals/editCriminal/{id}(id=${criminal.getId()})}" class="btn btn-primary">Edit</a>
+                <a th:href="@{/criminals/deleteCriminal/{id}(id=${criminal.getId()})}" class="btn btn-danger ms-1">Remove</a>
+                <a th:if="${criminal.getDateOfArrest() == null}" th:href="@{/criminals/arrest/{id}(id=${criminal.getId()})}" class="btn btn-outline-warning">Arrest</a>
+            </div>
+        </div>
+        <div class="row criminal-details">
+            <div class="col-md-4">
+                <div class="criminal-image">
+                    <img th:src="@{/images/{id}(id=${criminal.getImage().getId()})}" class="img-thumbnail" alt="Criminal Image">
+                </div>
+            </div>
+            <div class="col-md-8 criminal-info">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>First Name:</strong>
+                        <span th:text="${criminal.getFirstName()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Last Name:</strong>
+                        <span th:text="${criminal.getLastName()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Nickname:</strong>
+                        <span th:text="${criminal.getNickName()} ?: 'No provided data'"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Height:</strong>
+                        <span th:text="${criminal.getHeight()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Hair Color:</strong>
+                        <span th:text="${criminal.getHairColor()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Eye Color:</strong>
+                        <span th:text="${criminal.getEyeColor()} ?: 'No provided data'"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Criminal Group:</strong>
+                        <span th:text="${criminal.getCriminalGroup().getCriminalGroupName()} ?: 'No provided data'"></span>
+                        <span th:text="${criminal.getCriminalGroup().getCriminalGroupType()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Date of Arrest:</strong>
+                        <span th:text="${criminal.getDateOfArrest()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Date of Birth:</strong>
+                        <span th:text="${criminal.getDateOfBirth()} ?: 'No provided data'"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>Country:</strong>
+                        <span th:text="${criminal.getCountry()} ?: 'No provided data'"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Languages:</strong>
+                        <span th:each="language : ${criminal.getLanguages()}" th:text="${language.getCriminalLanguage()}"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Criminal Records:</strong>
+                        <span th:each="record : ${criminal.getCriminalRecords()}" th:text="${record.getCriminalRecord()}"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="dossier"><strong>Dossier:</strong></label>
+                        <p th:text="${criminal.getDossier() != null ? criminal.getDossier().getTextOfDossier() : 'No provided data'}" id="dossier"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div th:unless="${criminal != null}">
+        <p>No criminal data available.</p>
+    </div>
+</div>
+</body>
+</html>
