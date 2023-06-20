@@ -1,5 +1,6 @@
 package com.example.kr2.repository;
 
+import com.example.kr2.dto.CriminalDTO;
 import com.example.kr2.entety.Criminal;
 import com.querydsl.core.types.Predicate;
 import org.springframework.data.domain.Sort;

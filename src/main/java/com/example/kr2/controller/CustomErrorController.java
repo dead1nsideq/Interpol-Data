@@ -26,11 +26,6 @@ public class CustomErrorController {
         model.addAttribute("errorMessage", "The requested criminal does not exist.");
         return "error";
     }
-    @ExceptionHandler(ValidationException.class)
-    public String handleValidationException(Model model) {
-        model.addAttribute("errorMessage", "criminalRecords or languages is Empty");
-        return "error";
-    }
     @ExceptionHandler(ConstraintViolationException.class)
     public String handleConstraintViolationException(ConstraintViolationException exception, Model model) {
         Map<String, String> errorMap = new HashMap<>();

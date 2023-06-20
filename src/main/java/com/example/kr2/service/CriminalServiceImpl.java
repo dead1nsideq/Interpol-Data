@@ -1,54 +1,47 @@
 package com.example.kr2.service;
 
 import com.example.kr2.controller.NotFoundException;
-import com.example.kr2.controller.ValidationException;
+import com.example.kr2.dto.CriminalDTO;
+import com.example.kr2.dto.SortDTO;
 import com.example.kr2.entety.*;
+import com.example.kr2.mapper.Mapper;
 import com.example.kr2.repository.CriminalGroupRepository;
 import com.example.kr2.repository.CriminalRecordRepository;
 import com.example.kr2.repository.CriminalRepository;
 import com.example.kr2.repository.LanguageRepository;
 import com.querydsl.core.BooleanBuilder;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 @AllArgsConstructor
+@Log4j2
 public class CriminalServiceImpl implements CriminalService {
     private final CriminalRepository criminalRepository;
     private final CriminalGroupRepository criminalGroupRepository;
     private final CriminalRecordRepository criminalRecordRepository;
     private final LanguageRepository languageRepository;
+    private final Mapper mapper;
 
     @Override
-    public Optional<Criminal> getCriminalById(Long id) {
-        return Optional.ofNullable(criminalRepository.getCriminalById(id));
+    public Optional<CriminalDTO> getCriminalById(Long id) {
+        return Optional.ofNullable(mapper.criminaToCriminalDto(criminalRepository.getReferenceById(id)));
     }
     @Override
     @Transactional
     public void updateCriminalById(Long id,
-                                   Criminal updatedCriminal,
-                                   Dossier updatedDossier,
-                                   CriminalGroup updatedCriminalGroup,
-                                   @Valid @NotBlank String updatedLanguages,
-                                   @Valid @NotBlank String updatedCriminalRecords,
+                                   CriminalDTO dto,
                                    MultipartFile updatedImageFile) {
-        if (updatedLanguages.isBlank() || updatedCriminalRecords.isBlank()) {
-            throw new ValidationException();
-        }
+        Criminal updatedCriminal = mapper.criminaDtoToCriminal(dto);
         AtomicReference<Optional<Criminal>> atomicReference = new AtomicReference<>();
         criminalRepository.findById(id).ifPresentOrElse(existingCriminal -> {
             existingCriminal.setFirstName(updatedCriminal.getFirstName());
@@ -60,10 +53,10 @@ public class CriminalServiceImpl implements CriminalService {
             existingCriminal.setDateOfBirth(updatedCriminal.getDateOfBirth());
             existingCriminal.setEyeColor(updatedCriminal.getEyeColor());
             existingCriminal.setHairColor(updatedCriminal.getHairColor());
-
+            existingCriminal.getDossier().setTextOfDossier(dto.getTextOfDossier());
             CriminalGroup criminalGroupFromDb = criminalGroupRepository
-                    .getCriminalGroupByCriminalGroupNameAndCriminalGroupType(updatedCriminalGroup.getCriminalGroupName(), updatedCriminalGroup.getCriminalGroupType());
-            existingCriminal.setCriminalGroup(Objects.requireNonNullElseGet(criminalGroupFromDb, () -> criminalGroupRepository.save(updatedCriminalGroup)));
+                    .getCriminalGroupByCriminalGroupNameAndCriminalGroupType(updatedCriminal.getCriminalGroup().getCriminalGroupName(), updatedCriminal.getCriminalGroup().getCriminalGroupType());
+            existingCriminal.setCriminalGroup(Objects.requireNonNullElseGet(criminalGroupFromDb, () -> criminalGroupRepository.save(updatedCriminal.getCriminalGroup())));
 
             if (updatedImageFile != null && !updatedImageFile.isEmpty()) {
                 try {
@@ -73,15 +66,11 @@ public class CriminalServiceImpl implements CriminalService {
                     throw new RuntimeException(e);
                 }
             }
-
+            existingCriminal.setCriminalGroup(criminalGroupFromDb);
             existingCriminal.getCriminalRecords().clear();
-            splitStringToCriminalRecords(updatedCriminalRecords, existingCriminal);
-
             existingCriminal.getLanguages().clear();
-            splitStringToLanguages(updatedLanguages, existingCriminal);
-
-
-            existingCriminal.setDossier(updatedDossier);
+            splitStringToLanguages(dto.getSelectedLanguages(),existingCriminal);
+            splitStringToCriminalRecords(dto.getSelectedCriminalRecords(),existingCriminal);
 
             atomicReference.set(Optional.of(criminalRepository.save(existingCriminal)));
         }, () -> atomicReference.set(Optional.empty()));
@@ -91,92 +80,30 @@ public class CriminalServiceImpl implements CriminalService {
 
     @Override
     @Transactional
-    public void addCriminal(Criminal criminal,
-                            Dossier dossier,
-                            CriminalGroup criminalGroup,
-                            @Valid @NotEmpty String criminalLanguage,@Valid @NotEmpty String selectedCriminalRecords, MultipartFile file) {
+    public void addCriminal(CriminalDTO dto,MultipartFile file) {
         Image image;
         try {
             image = toImageEntity(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        Criminal criminal = mapper.criminaDtoToCriminal(dto);
         criminal.addImageToCriminal(image);
-        criminal.addDossierToCriminal(dossier);
+        criminal.addDossierToCriminal(criminal.getDossier());
         CriminalGroup criminalGroupFromDb = criminalGroupRepository
                 .getCriminalGroupByCriminalGroupNameAndCriminalGroupType
-                        (criminalGroup.getCriminalGroupName(),criminalGroup.getCriminalGroupType());
+                        (criminal.getCriminalGroup().getCriminalGroupName(),criminal.getCriminalGroup().getCriminalGroupType());
         if (criminalGroupFromDb == null) {
-            criminalGroupFromDb = criminalGroup;
-            criminalGroupRepository.save(criminalGroup);
+            criminalGroupFromDb = criminal.getCriminalGroup();
+            criminalGroupRepository.save(criminal.getCriminalGroup());
         }
         criminal.setCriminalGroup(criminalGroupFromDb);
-        splitStringToLanguages(criminalLanguage,criminal);
-        splitStringToCriminalRecords(selectedCriminalRecords,criminal);
+        criminal.getCriminalRecords().clear();
+        criminal.getLanguages().clear();
+        splitStringToLanguages(dto.getSelectedLanguages(),criminal);
+        splitStringToCriminalRecords(dto.getSelectedCriminalRecords(),criminal);
         criminalRepository.save(criminal);
     }
-
-    @Override
-    public List<Criminal> findCriminalsByInputParams(String inputCriminalFirstName, String inputCriminalLastName,
-                                                     String inputCriminalNickName, String arrestedCriminals,
-                                                     String criminalRecord, String textInDossier, String criminalGroupType,
-                                                     String eyeColor, String hairColor, String sortBy, boolean order) {
-        QCriminal criminal = QCriminal.criminal;
-        BooleanBuilder predicate = new BooleanBuilder();
-        if (!inputCriminalFirstName.isBlank()) {
-            predicate.and(criminal.firstName.containsIgnoreCase(inputCriminalFirstName));
-        }
-        if (!arrestedCriminals.isBlank()) {
-            switch (arrestedCriminals) {
-                case "notArrested" -> predicate.and(criminal.dateOfArrest.isNull());
-                case "onlyArrested" -> predicate.and(criminal.dateOfArrest.isNotNull());
-            }
-        }
-        if (!inputCriminalLastName.isBlank()) {
-            predicate.and(criminal.lastName.containsIgnoreCase(inputCriminalLastName));
-        }
-        if (!inputCriminalNickName.isBlank()) {
-            predicate.and(criminal.nickName.containsIgnoreCase(inputCriminalNickName));
-        }
-        if (!criminalRecord.isBlank()) {
-            predicate.and(criminal.criminalRecords.any().criminalRecord.equalsIgnoreCase(criminalRecord));
-        }
-        if (!textInDossier.isBlank()) {
-            predicate.and(criminal.dossier.textOfDossier.contains(textInDossier));
-        }
-        if (CriminalGroupType.isValidValue(criminalGroupType)) {
-            predicate.and(criminal.criminalGroup.criminalGroupType.eq(CriminalGroupType.valueOf(criminalGroupType)));
-        }
-        if (EyeColor.isValidValue(eyeColor)) {
-            predicate.and(criminal.eyeColor.eq(EyeColor.valueOf(eyeColor)));
-        }
-        if (HairColor.isValidValue(hairColor)) {
-            predicate.and(criminal.hairColor.eq(HairColor.valueOf(hairColor)));
-        }
-        Sort.Direction direction = order ? Sort.Direction.DESC : Sort.Direction.ASC;
-        if (sortBy.isBlank()) {
-            sortBy = "id";
-        }
-        Sort sort = Sort.by(direction,sortBy);
-        return criminalRepository.findAll(predicate,sort);
-    }
-
-    @Override
-    public boolean deleteCriminal(Long id) {
-        if (criminalRepository.existsById(id)) {
-            criminalRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public void arrestCriminal(Long id) {
-        Criminal criminal = getCriminalById(id).orElseThrow(NotFoundException::new);
-        criminal.setDateOfArrest(LocalDate.now());
-        criminalRepository.save(criminal);
-    }
-
     private void splitStringToLanguages(String str, Criminal criminal) {
         String[] languages = str.split(",");
         List<Language> languageList = new ArrayList<>();
@@ -205,6 +132,64 @@ public class CriminalServiceImpl implements CriminalService {
             criminalRecordList.add(criminalRecord);
         }
         criminalRecordRepository.saveAll(criminalRecordList);
+    }
+
+    @Override
+    public List<Criminal> findCriminalsByInputParams(SortDTO sortDTO) {
+        QCriminal criminal = QCriminal.criminal;
+        BooleanBuilder predicate = new BooleanBuilder();
+        if (sortDTO.getInputCriminalFirstName() != null && !sortDTO.getInputCriminalFirstName().isBlank()) {
+            predicate.and(criminal.firstName.containsIgnoreCase(sortDTO.getInputCriminalFirstName()));
+        }
+        if (sortDTO.getArrestedCriminals() != null &&!sortDTO.getArrestedCriminals().isBlank()) {
+            switch (sortDTO.getArrestedCriminals()) {
+                case "notArrested" -> predicate.and(criminal.dateOfArrest.isNull());
+                case "onlyArrested" -> predicate.and(criminal.dateOfArrest.isNotNull());
+            }
+        }
+        if (sortDTO.getInputCriminalLastName() != null && !sortDTO.getInputCriminalLastName().isBlank()) {
+            predicate.and(criminal.lastName.containsIgnoreCase(sortDTO.getInputCriminalLastName()));
+        }
+        if (sortDTO.getInputCriminalNickName() != null && !sortDTO.getInputCriminalNickName().isBlank()) {
+            predicate.and(criminal.nickName.containsIgnoreCase(sortDTO.getInputCriminalNickName()));
+        }
+        if (sortDTO.getCriminalRecord() != null && !sortDTO.getCriminalRecord().isBlank()) {
+            predicate.and(criminal.criminalRecords.any().criminalRecord.equalsIgnoreCase(sortDTO.getCriminalRecord()));
+        }
+        if (sortDTO.getTextInDossier() != null && !sortDTO.getTextInDossier().isBlank()) {
+            predicate.and(criminal.dossier.textOfDossier.contains(sortDTO.getTextInDossier()));
+        }
+        if (CriminalGroupType.isValidValue(sortDTO.getCriminalGroupType())) {
+            predicate.and(criminal.criminalGroup.criminalGroupType.eq(CriminalGroupType.valueOf(sortDTO.getCriminalGroupType())));
+        }
+        if (EyeColor.isValidValue(sortDTO.getEyeColor())) {
+            predicate.and(criminal.eyeColor.eq(EyeColor.valueOf(sortDTO.getEyeColor())));
+        }
+        if (HairColor.isValidValue(sortDTO.getHairColor())) {
+            predicate.and(criminal.hairColor.eq(HairColor.valueOf(sortDTO.getHairColor())));
+        }
+        Sort.Direction direction = sortDTO.isOrder() ? Sort.Direction.DESC : Sort.Direction.ASC;
+        String sortBy = sortDTO.getSortBy();
+        if (sortBy == null) {
+            sortBy = "id";
+        }
+        Sort sort = Sort.by(direction,sortBy);
+        return criminalRepository.findAll(predicate,sort);
+    }
+
+    @Override
+    public boolean deleteCriminal(Long id) {
+        if (criminalRepository.existsById(id)) {
+            criminalRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+    @Override
+    public void arrestCriminal(Long id) {
+        Criminal criminal = criminalRepository.findById(id).orElseThrow(NotFoundException::new);
+        criminal.setDateOfArrest(LocalDate.now());
+        criminalRepository.save(criminal);
     }
 
     private Image toImageEntity(MultipartFile file) throws IOException {

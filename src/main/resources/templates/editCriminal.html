@@ -67,7 +67,7 @@
         <div class="col col-md-2">
             <div class="form-group">
                 <label for="criminalGroupName">Criminal group name:</label>
-                <input type="text" name="criminalGroupName" id="criminalGroupName" class="form-control" aria-describedby="criminalGangHelp" th:value="${criminal.getCriminalGroup().getCriminalGroupName()}">
+                <input type="text" name="criminalGroupName" id="criminalGroupName" class="form-control" aria-describedby="criminalGangHelp" th:value="${criminal.getCriminalGroupName()}">
                 <div id="criminalGangHelp" class="form-text">Input criminal group name</div>
             </div>
         </div>
@@ -75,14 +75,14 @@
             <div class="form-group">
                 <label for="criminalGroupType">Criminal group type</label>
                 <select class="form-control" name="criminalGroupType" id="criminalGroupType">
-                    <option value="Mafia" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Mafia'}">Mafia</option>
-                    <option value="Cartel" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Cartel'}">Cartel</option>
-                    <option value="Gang" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Gang'}">Gang</option>
-                    <option value="Syndicate" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Syndicate'}">Syndicate</option>
-                    <option value="Triad" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name()  == 'Triad'}">Triad</option>
-                    <option value="Yakuza" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Yakuza'}">Yakuza</option>
-                    <option value="Familia" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name()  == 'Familia'}">Familia</option>
-                    <option value="Organisation" th:selected="${criminal.getCriminalGroup().getCriminalGroupType().name() == 'Organisation'}">Organisation</option>
+                    <option value="Mafia" th:selected="${criminal.getCriminalGroupType().name() == 'Mafia'}">Mafia</option>
+                    <option value="Cartel" th:selected="${criminal.getCriminalGroupType().name() == 'Cartel'}">Cartel</option>
+                    <option value="Gang" th:selected="${criminal.getCriminalGroupType().name() == 'Gang'}">Gang</option>
+                    <option value="Syndicate" th:selected="${criminal.getCriminalGroupType().name() == 'Syndicate'}">Syndicate</option>
+                    <option value="Triad" th:selected="${criminal.getCriminalGroupType().name()  == 'Triad'}">Triad</option>
+                    <option value="Yakuza" th:selected="${criminal.getCriminalGroupType().name() == 'Yakuza'}">Yakuza</option>
+                    <option value="Familia" th:selected="${criminal.getCriminalGroupType().name()  == 'Familia'}">Familia</option>
+                    <option value="Organisation" th:selected="${criminal.getCriminalGroupType().name() == 'Organisation'}">Organisation</option>
                 </select>
             </div>
         </div>
@@ -182,6 +182,7 @@
 
 
                 var selectedLanguagesValue = /*[[${selectedCriminalRecords}]]*/ [];
+                console.log(selectedLanguagesValue)
                 if (selectedLanguagesValue) {
                     selectedLanguagesValue.forEach(function(language) {
                         addLanguage(language);
@@ -205,7 +206,7 @@
             <input type="text" id="newLanguageInput" name="criminalLanguage">
             <button type="button" id="addLanguageButton">+</button>
             <ul id="selectedLanguages">
-                <li th:each="language : ${selectedLanguages}" th:text="${language}"></li>
+
             </ul>
         </div>
 
@@ -271,7 +272,8 @@
                 });
 
 
-                var selectedLanguagesValue = /*[[${selectedLanguagesValue}]]*/ [];
+                var selectedLanguagesValue = /*[[${selectedLanguages}]]*/ [];
+                console.log(selectedLanguagesValue)
                 if (selectedLanguagesValue) {
                     selectedLanguagesValue.forEach(function(language) {
                         addLanguage(language);
@@ -285,10 +287,9 @@
             });
         </script>
     </div>
-
     <div class="col-md-5">
         <label for="textOfDossier">Dossier:</label>
-        <textarea id="textOfDossier" name="textOfDossier" class="form-control" rows="4" th:text="${criminal.getDossier().getTextOfDossier()}"></textarea>
+        <textarea id="textOfDossier" name="textOfDossier" class="form-control" rows="4" th:text="${criminal.getTextOfDossier()}"></textarea>
     </div>
     <div class="col-md-2">
         <label for="file">Choose File:</label>

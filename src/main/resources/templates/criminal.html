@@ -53,7 +53,7 @@
         <div class="row criminal-details">
             <div class="col-md-4">
                 <div class="criminal-image">
-                    <img th:src="@{/images/{id}(id=${criminal.getImage().getId()})}" class="img-thumbnail" alt="Criminal Image">
+                    <img th:src="@{/images/{id}(id=${criminal.getImageId()})}" class="img-thumbnail" alt="Criminal Image">
                 </div>
             </div>
             <div class="col-md-8 criminal-info">
@@ -88,8 +88,8 @@
                 <div class="row">
                     <div class="col-md-4">
                         <strong>Criminal Group:</strong>
-                        <span th:text="${criminal.getCriminalGroup().getCriminalGroupName()} ?: 'No provided data'"></span>
-                        <span th:text="${criminal.getCriminalGroup().getCriminalGroupType()} ?: 'No provided data'"></span>
+                        <span th:text="${criminal.getCriminalGroupName()} ?: 'No provided data'"></span>
+                        <span th:text="${criminal.getCriminalGroupType()} ?: 'No provided data'"></span>
                     </div>
                     <div class="col-md-4">
                         <strong>Date of Arrest:</strong>
@@ -107,17 +107,17 @@
                     </div>
                     <div class="col-md-4">
                         <strong>Languages:</strong>
-                        <span th:each="language : ${criminal.getLanguages()}" th:text="${language.getCriminalLanguage()}"></span>
+                        <span th:each="language : ${#strings.arraySplit(criminal.getSelectedLanguages(), ',')}" th:text="${language}"></span>
                     </div>
                     <div class="col-md-4">
                         <strong>Criminal Records:</strong>
-                        <span th:each="record : ${criminal.getCriminalRecords()}" th:text="${record.getCriminalRecord()}"></span>
+                        <span th:each="record : ${#strings.arraySplit(criminal.getSelectedCriminalRecords(), ',')}" th:text="${record}"></span>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12">
                         <label for="dossier"><strong>Dossier:</strong></label>
-                        <p th:text="${criminal.getDossier() != null ? criminal.getDossier().getTextOfDossier() : 'No provided data'}" id="dossier"></p>
+                        <p th:text="${criminal.getTextOfDossier() ?: 'No provided data'}" id="dossier"></p>
                     </div>
                 </div>
             </div>
